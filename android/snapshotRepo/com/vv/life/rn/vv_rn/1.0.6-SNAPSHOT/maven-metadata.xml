@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>com.vv.life.rn</groupId>
+  <artifactId>vv_rn</artifactId>
+  <version>1.0.6-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <timestamp>20200815.150407</timestamp>
+      <buildNumber>8</buildNumber>
+    </snapshot>
+    <lastUpdated>20200815150407</lastUpdated>
+    <snapshotVersions>
+      <snapshotVersion>
+        <extension>aar</extension>
+        <value>1.0.6-20200815.150407-8</value>
+        <updated>20200815150407</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>1.0.6-20200815.150407-8</value>
+        <updated>20200815150407</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <classifier>sources</classifier>
+        <extension>jar</extension>
+        <value>1.0.6-20200815.150407-8</value>
+        <updated>20200815150407</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+</metadata>

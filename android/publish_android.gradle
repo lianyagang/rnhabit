@@ -1,0 +1,52 @@
+apply plugin: 'maven'
+
+
+
+final def localMaven = true //true: 发布到本地maven仓库， false： 发布到maven私服
+
+final def artGroupId = project.VVPOM_GROUP_ID
+final def artVersion = project.VVVERSION_NAME
+final def artifactId = project.VVARID
+
+
+if(artifactId == null || artVersion == null) {
+    return
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+
+            if(localMaven) {
+                repository(url: uri('D:/repo-localuseAID'))
+            } else {
+                repository(url: MAVEN_URL) {
+                    authentication(userName: MAVEN_ACCOUNT_NAME, password: MAVEN_ACCOUNT_PWD)
+                }
+
+                snapshotRepository(url: MAVEN_URL_SNAPSHOT) {
+                    authentication(userName: MAVEN_ACCOUNT_NAME, password: MAVEN_ACCOUNT_PWD)
+                }
+            }
+            pom.groupId = artGroupId
+            pom.version = artVersion
+            pom.whenConfigured { pom ->
+                pom.dependencies.forEach { dep ->
+                    if (dep.getVersion() == "unspecified") {
+                        println("--modify the dependenies module in pom.xml--->>" + dep.getArtifactId())
+                        dep.setGroupId(artGroupId)
+                        dep.setVersion(artVersion)
+                    }
+                }
+            }
+            pom.project {
+                licenses {
+                    license {
+                        name 'The Apache Software License, artVersion 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+            }
+        }
+    }
+}

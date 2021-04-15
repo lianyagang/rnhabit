@@ -1,0 +1,62 @@
+apply plugin: 'maven'
+
+// 这里不需要artifacts，uploadArchives命令会自动生成并上传./build/outputs/flutter-release.aar，不然出现下面错误
+// A POM cannot have multiple artifacts with the same type and classifier
+//artifacts {
+//    archives file('./build/outputs/flutter-release.aar')
+//}
+
+final def localMaven = "1".equals(CLOUND_MAVEN) //true: 发布到本地maven仓库， false： 发布到maven私服
+
+final def artGroupId = project.group
+final def artVersion = project.version
+final def artifactId = project.hasProperty('fArtifactId') && project.fArtifactId ? project.fArtifactId : null
+final def isFlutterModule = project.hasProperty('fModule') && project.fModule ? project.fModule : false
+
+
+if(artifactId == null || artVersion == null) {
+   return
+}
+
+// 因为只要执行./gradlew xxx等命令，rootProject和subProject的build.gradle都要执行一次，
+// 所以这里要判断当前module和是否和正在处理的module一样，不是相同module就不处理，
+// 但是因为不同业务的flutter module名称都是flutter并且artifactId和module名称又不相同，所以要通过isFlutterModule参数区分
+//if(!project.name.equals(artifactId) && (!project.name.equals("flutter") || !isFlutterModule)) {
+//   return
+//}
+ println "==maven url: ${project.name}:${artifactId}:"
+//project.group = artGroupId
+//project.version = artVersion
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            println "==maven url: ${artGroupId}:${artifactId}:${artVersion}"
+
+            if(localMaven) {
+                repository(url: uri(project.rootProject.projectDir.absolutePath + '/repo-local'))
+            } else {
+                repository(url: MAVEN_URL) {
+                    authentication(userName: MAVEN_ACCOUNT_NAME, password: MAVEN_ACCOUNT_PWD)
+                }
+
+                snapshotRepository(url: MAVEN_URL_SNAPSHOT) {
+                    authentication(userName: MAVEN_ACCOUNT_NAME, password: MAVEN_ACCOUNT_PWD)
+                }
+            }
+
+            pom.groupId = artGroupId
+            pom.artifactId = artifactId
+            pom.version = artVersion
+
+            pom.project {
+                licenses {
+                    license {
+                        name 'The Apache Software License, artVersion 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+            }
+        }
+    }
+}

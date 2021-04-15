@@ -1,0 +1,67 @@
+apply plugin: 'maven'
+
+// 这里不需要artifacts，uploadArchives命令会自动生成并上传./build/outputs/flutter-release.aar，不然出现下面错误
+// A POM cannot have multiple artifacts with the same type and classifier
+//artifacts {
+//    archives file('./build/outputs/flutter-release.aar')
+//}
+
+final def localMaven = true //true: 发布到本地maven仓库， false： 发布到maven私服
+
+def artGroupId = project.hasProperty('fGroupId') && project.fGroupId ? project.fGroupId : null
+def artVersion = project.hasProperty('fVersion') && project.fVersion ? project.fVersion : null
+def artifactId = project.hasProperty('fArtifactId') && project.fArtifactId ? project.fArtifactId : null
+def isFlutterModule = project.hasProperty('fModule') && project.fModule ? project.fModule : false
+
+if(artifactId == null || artVersion == null) {
+return
+}
+
+
+
+// 很重要，用来覆盖各个自依赖中的group和version
+// ./gradlew clean assembleRelease -PfGroupId=${fGroupId} -PfArtifactId=${fArtifactId} -PfVersion=${fVersion}
+// 执行了这个命令，根目录的build.gradle就会执行，这时候把参数设置到project.rootProject.ext，后面各个subProject就可以拿到
+artGroupId = project.hasProperty('fGroupId') && project.fGroupId ? project.fGroupId : null
+artVersion = project.hasProperty('fVersion') && project.fVersion ? project.fVersion : null
+project.rootProject.ext {
+gArtGroupId = artGroupId
+gArtVersion = artVersion
+}
+
+
+//project.group = artGroupId
+//project.version = artVersion
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            println "==maven url: ${artGroupId}:${artifactId}:${artVersion}"
+
+            if(localMaven) {
+                repository(url: uri('D:/repo-local'))
+            } else {
+                repository(url: MAVEN_URL) {
+                    authentication(userName: MAVEN_ACCOUNT_NAME, password: MAVEN_ACCOUNT_PWD)
+                }
+
+                snapshotRepository(url: MAVEN_URL_SNAPSHOT) {
+                    authentication(userName: MAVEN_ACCOUNT_NAME, password: MAVEN_ACCOUNT_PWD)
+                }
+            }
+
+            pom.groupId = artGroupId
+            pom.artifactId = artifactId
+            pom.version = artVersion
+
+            pom.project {
+                licenses {
+                    license {
+                        name 'The Apache Software License, artVersion 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+            }
+        }
+    }
+}
